@@ -826,13 +826,9 @@ int main(int argc, char **argv) {
     const std::string outputPath = absolutePath(args.outputPath);
     const int electionFd = shouldSample(outputPath);
     if (electionFd) {
-      /*
-       * Do not sleep here.
-       *
-       * The abstract UNIX socket election is atomic: once bind()
-       * succeeds, this rank is the sole sampler for this output
-       * directory.
-       */
+      // Give the other MPI ranks time to reach the election.
+      // (Required in case the application exists immediately.)
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       startSampler(outputPath, electionFd, getIntervalMs());
     }
     /*
